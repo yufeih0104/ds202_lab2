@@ -1,0 +1,130 @@
+---
+title: "ds202_lab2"
+author: "Yufei Huang"
+date: "2021/2/19"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Library ###
+```{r}
+library(ggplot2)
+```
+
+### DATA
+```{r}
+choco <- read.csv("https://raw.githubusercontent.com/xdaiISU/ds202materials/master/hwlabs/data/choco.csv") 
+str(choco)
+```
+
+
+## Question 1 ##
+```{r}
+hist(choco$Rating, xlab = "Rating of Chocolate Bar", main = "Histogram of Chocolate Rating Scores")
+boxplot(choco$Rating,ylab = "Rating of Chocolate Bar", main = "Boxplot of Chocolate Rating Scores")
+```
+```
+From the histogram we can see that the rating distribution skewed to the left with some potential outliers that have ratings around 1.0. Most chocolate rating scores are distributed from 2.75 to 3.6.
+From the boxplot we can see that the mean of all observations' rating score is about 3.25. There are some outliers from 1.0 to 2.0. The IQR is between 2.9 and 3.5. Maxinum is about 4 and mininum is about 2.25.
+```
+## Question 2 ##
+```{r}
+groupmean <- aggregate(x = choco$Rating, by = list(choco$Location), FUN = mean)
+groupmean[which(groupmean$x==max(groupmean$x)),]
+groupmean[which(groupmean$x==min(groupmean$x)),]
+barplot(groupmean$x, ylab = "Average Rating Score of Chocolate Bar", main="Barchart of Ratings")
+groupmean
+```
+```
+By looking at each name of the bar and comparing them, We can see that Chile has the highest average rating score of chocolate, and India, Puerto Rico have the lowest average Rating Score of Chocolate. Most counties have the similar rating scores around 3, which means that it won't influence woo much just because those companies are from different countries.
+```
+
+## Question 3 ##
+```{r}
+boxplot(choco$Rating~choco$Cocoa_Percent, xlab="Cocoa Percent", ylab="Rating", main="Side by Side Boxplot of Ratings by Cocoa Percent")
+cor(choco$Cocoa_Percent, choco$Rating)
+```
+```
+First of all, the correlation between Cocoa Percent and Rating is -0.151, which shows a negative, weak, linear relationship between them. From the correlation value, we can image that the scatter plot would be a whole cloud mess shows no particular pattern, which is the reason why it should not be a good idea to use.
+Second of all, except the very right part of our box plot, which are those chocolates that have a very high cocoa percent, the rest of the chocolate didn't show a very obvious sign of how cocoa percent would influence ratings much.
+From all the information I get above, I would say, cocoa percent might not be a significant influecence of ratings of chocolates.
+```
+
+## Question 4 ##
+```{r}
+bean <- aggregate(x = choco$Rating, by = list(choco$Bean_Origin), FUN = mean)
+boxplot(bean$x~bean$Group.1)
+good <- bean[which(bean$x>=3.3),]
+fine <- bean[which(bean$x<=2.9),]
+good
+fine
+```
+```
+First of all, we can see from the graph that most beans that from different origins have chocolate rating about 3.0 to 3.2.
+Second of all, I sorted out a good list which contains bean's origins that have ratings equal or higher than 3.3 and a fine list which contains bean's origins that have ratings equal or lower than 2.9. The two lists are showed above.
+From these results, we can say that different bean origins do have some variaties of the chocolates flavor, but it is not a very significant variable since most beans that from different origins still have similar ratings, Some regions do have better beans than others.
+```
+
+## Question 5 ##
+
+1) I have a idea about maybe different years have different weathers that might influence the flavor of chocolates, so that I want to do a analysis based on only the reviews in year 2016, and those chocolates which only made by USA companies.
+```{r}
+cho16us <- choco[which((choco$Location=='U.S.A.')&(choco$Date==2016)),]
+dim(cho16us)
+```
+
+Then I want to conduct a 95% confidence interval of chocolates average rating in year 2016 and made by USA companies.
+```{r}
+xbar <- mean(cho16us$Rating)
+variance <- var(cho16us$Rating)
+stddev <- sqrt(variance)
+me <- 1.644*(stddev/sqrt(106))
+xbar - me
+xbar + me
+```
+```
+The 95% confidence interval of flavor ratings of chocolates reviewed in year 2016 and made by USA is between 3.149933 and 3.288746.
+```
+
+Now, I want to select all the chocolates reviewed in year 2016 but no made by the USA, and compare the 95% confidence interval with USA's confidence interval.
+```{r}
+cho16 <- choco[which((!(choco$Location=='U.S.A.'))&(choco$Date==2016)),]
+dim(cho16)
+
+xbar1 <- mean(cho16$Rating)
+variance1 <- var(cho16$Rating)
+stddev1 <- sqrt(variance1)
+me1 <- 1.644*(stddev1/sqrt(219))
+xbar1 - me
+xbar1 + me
+```
+```
+The interval we got is 3.162894 and 3.301708. It is close to 3.149933 and 3.288746 but slightly higher than them. Since the rating range is only between 1.0-5.0, I would say that small difference is important at this point. So that, what I observed is that other counties do have a slight better chocolate flavor than the USA in year 2016.
+```
+
+2) Second analysis: 
+```{r}
+table(choco$Location)
+```
+
+```
+We can see that many counties only had few chocolates that had been reviewed, which means the sample size is not enough to make a conclusion on their population. So that I choose USA as my data set for the next part.
+```
+```{r}
+chous <- choco[which((choco$Location=='U.S.A.')),]
+goodus <- chous[which(chous$Rating>=median(chous$Rating)),]
+better <- goodus[which(goodus$Rating>=median(goodus$Rating)),]
+betterb <- better[which(better$Rating>=median(better$Rating)),]
+betterbb <- betterb[which(betterb$Rating>=median(betterb$Rating)),]
+highest <- betterbb[which(betterbb$Rating==max(betterbb$Rating)),]
+result <- highest[which(highest$Bean_Origin=="Solomon Islands"),]
+result
+```
+
+```
+According to the previous analysis, we know that Solomon Islands is one of the bean_origin that has the highest average rating, and I found all the rows under USA subset with the highest ratings, and there is one chocolate that has a bean_origin is from Solomon Islands.
+And this is the result of my best chocolate choice depending on the bean origin under all chocolate made by USA companies.
+```
